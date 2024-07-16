@@ -146,6 +146,11 @@ services = {
     },
 }
 
+model_prompts = {
+    'amazon.titan-text-lite-v1': '{"inputText":"What is the golden ratio?","textGenerationConfig":{"maxTokenCount":4096,"stopSequences":[],"temperature":0,"topP":1}}',
+    'anthropic.claude-3-sonnet-20240229-v1:0': '{"anthropic_version":"bedrock-2023-05-31","max_tokens":1000,"messages":[{"role":"user","content":[{"type":"text","text":"What is the golden ratio?"}]}]}',
+}
+
 http_client.HTTPConnection.debuglevel = 1
 logging.getLogger('botocore').setLevel(logging.INFO)
 logging.basicConfig()
@@ -157,7 +162,7 @@ requests_log = logging.getLogger('requests.packages.urllib3')
 requests_log.setLevel(logging.INFO)
 requests_log.propagate = True
 
-def invoke_model_https(region_name: str, model_id: str, with_botocore: bool = True):
+def invoke_model_https(region_name: str, model_id: str, payload: str, sign_with_botocore: bool = True):
     service = 'bedrock'
     resource = 'bedrock-runtime'
     if not region_name in services[service]['endpoints']:
@@ -169,13 +174,11 @@ def invoke_model_https(region_name: str, model_id: str, with_botocore: bool = Tr
     request_url = f'https://{host}{path}'
     method = 'POST'
 
-    payload = model_prompts[model_id]
-
     credentials = botocore.session.Session().get_credentials()
 
     headers = {}
-    logger.debug(f'with_botocore: {with_botocore}')
-    if with_botocore:
+    logger.debug(f'sign_with_botocore: {sign_with_botocore}')
+    if sign_with_botocore:
         logger.debug('Generating request headers using botocore...')
         headers = generate_sigv4_headers_botocore(credentials, region_name, service, request_url, method, payload)
     else:
@@ -196,10 +199,7 @@ def invoke_model_https(region_name: str, model_id: str, with_botocore: bool = Tr
 
 if __name__ == '__main__':
     region_name = 'us-west-2'
-    model_prompts = {
-        'amazon.titan-text-lite-v1': '{"inputText":"What is the golden ratio?","textGenerationConfig":{"maxTokenCount":4096,"stopSequences":[],"temperature":0,"topP":1}}',
-        'anthropic.claude-3-sonnet-20240229-v1:0': '{"anthropic_version":"bedrock-2023-05-31","max_tokens":1000,"messages":[{"role":"user","content":[{"type":"text","text":"What is the golden ratio?"}]}]}',
-    }
     model_id = 'amazon.titan-text-lite-v1'
     # model_id = 'anthropic.claude-3-sonnet-20240229-v1:0'
-    invoke_model_https(region_name, model_id, True)
+    payload = model_prompts[model_id]
+    invoke_model_https(region_name, model_id, payload, True)
