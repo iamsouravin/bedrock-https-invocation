@@ -7,6 +7,7 @@ from sign.signature import (
     generate_sigv4_headers_botocore
 )
 
+# Derived from botocore==1.34.144: botocore/data/endpoints.json
 services = {
     'bedrock': {
         'endpoints': {
