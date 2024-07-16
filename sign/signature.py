@@ -1,4 +1,3 @@
-import botocore.credentials as credentials
 import datetime
 import hashlib
 import hmac
@@ -8,7 +7,6 @@ import urllib.parse
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials
-from botocore.compat import HTTPHeaders
 
 logger = logging.getLogger(__name__)
 
